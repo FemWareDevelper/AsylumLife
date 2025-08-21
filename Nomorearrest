@@ -1,0 +1,34 @@
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+
+-- Hedef nokta
+local target = workspace.A_MAP.Infrastructure.Facility.UndergroundFacility.SecretGrid:GetChildren()[57]
+
+local function teleport()
+    if not char or not char.PrimaryPart then return end
+    if target:IsA("BasePart") then
+        char:SetPrimaryPartCFrame(target.CFrame)
+    elseif target.PrimaryPart then
+        char:SetPrimaryPartCFrame(target.PrimaryPart.CFrame)
+    end
+end
+
+-- State değişimini dinle
+local function hookHumanoid(h)
+    h.StateChanged:Connect(function(_, newState)
+        if newState == Enum.HumanoidStateType.Physics then
+            teleport()
+        end
+    end)
+end
+
+-- İlk humanoid
+hookHumanoid(humanoid)
+
+-- Respawn sonrası
+player.CharacterAdded:Connect(function(newChar)
+    char = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    hookHumanoid(humanoid)
+end)
