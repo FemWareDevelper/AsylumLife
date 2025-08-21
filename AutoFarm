@@ -1,0 +1,125 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+local AutoClaim = true
+local AutoClick = false
+local InstantProximity = true
+
+local function findRemotes()
+    local remote = ReplicatedStorage:FindFirstChild("Remote")
+    if not remote then
+        remote = ReplicatedStorage:WaitForChild("Remote", 10)
+        if not remote then
+            warn("Remote not found!")
+            return nil
+        end
+    end
+    
+    local mysteryPrizes = remote:FindFirstChild("MysteryPrizes")
+    if not mysteryPrizes then
+        mysteryPrizes = remote:WaitForChild("MysteryPrizes", 5)
+        if not mysteryPrizes then
+            warn("MysteryPrizes not found!")
+            return nil
+        end
+    end
+    
+    local claimWeeklyPrize = mysteryPrizes:FindFirstChild("ClaimWeeklyPrize")
+    if not claimWeeklyPrize then
+        claimWeeklyPrize = mysteryPrizes:WaitForChild("ClaimWeeklyPrize", 5)
+        if not claimWeeklyPrize then
+            warn("ClaimWeeklyPrize not found!")
+            return nil
+        end
+    end
+    
+    return claimWeeklyPrize
+end
+
+local function startAutoClaim(claimRemote)
+    if not AutoClaim then return end
+    
+    task.spawn(function()
+        while AutoClaim do
+            local success, result = pcall(function()
+                claimRemote:FireServer()
+                task.wait(0.1)
+                return claimRemote:InvokeServer()
+            end)
+            
+            if success then
+                if result then
+                    sendToDiscord(tostring(result))
+                    print("Rolled: " .. tostring(result))
+                else
+                    print("Claimed: " .. getIstanbulTime())
+                end
+            else
+                warn("Error: " .. tostring(result))
+            end
+            
+            task.wait(0.5)
+        end
+    end)
+end
+
+local function startAutoClick()
+    if not AutoClick then return end
+    
+    task.spawn(function()
+        while AutoClick do
+            pcall(function()
+                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            end)
+            task.wait(0.1)
+        end
+    end)
+end
+
+local function setupInstantProximity()
+    if not InstantProximity then return end
+    
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("ProximityPrompt") then
+            pcall(function()
+                v.HoldDuration = 0
+                v.MaxActivationDistance = 50
+            end)
+        end
+    end
+
+    game.DescendantAdded:Connect(function(desc)
+        if desc:IsA("ProximityPrompt") and InstantProximity then
+            pcall(function()
+                desc.HoldDuration = 0
+                desc.MaxActivationDistance = 50
+            end)
+        end
+    end)
+end
+
+local function initialize()
+    if not Players.LocalPlayer then
+        Players.PlayerAdded:Wait()
+    end
+    task.wait(3)
+    
+    local claimRemote = findRemotes()
+    if not claimRemote then
+        warn("Remotes not found! Stopping script.")
+        return
+    end
+    
+    print("Remotes found successfully!")
+    
+    startAutoClaim(claimRemote)
+    startAutoClick()
+    setupInstantProximity()
+    
+    print("SCRIPT STARTED!")
+end
+
+initialize()
