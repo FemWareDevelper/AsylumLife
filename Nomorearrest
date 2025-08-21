@@ -3,7 +3,7 @@ local char = player.Character or player.CharacterAdded:Wait()
 local humanoid = char:WaitForChild("Humanoid")
 
 -- Hedef nokta
-local target = workspace.A_MAP.Infrastructure.Facility.UndergroundFacility.SecretGrid:GetChildren()[57]
+local target = workspace.A_MAP.Infrastructure.Facility.UndergroundFacility.SecretGrid.Beanbag.Base
 
 local function teleport()
     if not char or not char.PrimaryPart then return end
