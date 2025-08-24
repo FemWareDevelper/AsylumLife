@@ -1,0 +1,12 @@
+local VIM = game:GetService("VirtualInputManager")
+local RunService = game:GetService("RunService")
+
+_G.AutoClick = true
+
+task.spawn(function()
+    while _G.AutoClick do
+        VIM:SendMouseButtonEvent(0, 0, 0, true, game, 0) 
+        VIM:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+        task.wait(0.05) -- tıklama hızı (0.05 sn = 20 CPS civarı)
+    end
+end)
